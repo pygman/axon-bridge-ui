@@ -6,6 +6,11 @@ export interface GetL2CkbBalancePayload {
   l2Address?: string;
 }
 
+export interface GetFeePayload {
+  l2Address?: string;
+  value?: number;
+}
+
 export interface GetL1CkbBalancePayload {
   l1Address?: string;
 }
@@ -122,6 +127,12 @@ export interface DepositPayload {
   sudtType?: Script;
 }
 
+export interface CrossToCkbPayload {
+  amount: HexNumber;
+  address: string;
+  token: string;
+}
+
 export interface PendingDepositTransaction {
   tx_hash: Hash;
 }
@@ -203,6 +214,8 @@ export interface LightGodwokenBase {
   withdrawWithEvent: (payload: WithdrawalEventEmitterPayload) => WithdrawalEventEmitter;
 
   getL2CkbBalance: (payload?: GetL2CkbBalancePayload) => Promise<HexNumber>;
+
+  getFee: () => Promise<HexNumber>;
 
   getL1CkbBalance: (payload?: GetL1CkbBalancePayload) => Promise<HexNumber>;
 

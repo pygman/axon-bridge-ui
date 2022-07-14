@@ -6,7 +6,7 @@ import {
   BaseWithdrawalEventEmitterPayload,
   CKB_SUDT_ID,
   GetErc20Balances,
-  GetErc20BalancesResult,
+  GetErc20BalancesResult, GetFeePayload,
   GetL2CkbBalancePayload,
   LightGodwokenV0,
   ProxyERC20,
@@ -97,6 +97,10 @@ export default class DefaultLightGodwokenV0 extends DefaultLightGodwoken impleme
   async getL2CkbBalance(payload?: GetL2CkbBalancePayload): Promise<HexNumber> {
     const balance = await this.provider.web3.eth.getBalance(payload?.l2Address || this.provider.l2Address);
     return "0x" + Number(balance).toString(16);
+  }
+
+  async getFee(payload?: GetFeePayload | undefined): Promise<HexNumber> {
+    return "0x10";
   }
 
   getBuiltinErc20List(): ProxyERC20[] {

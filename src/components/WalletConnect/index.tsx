@@ -17,6 +17,7 @@ const StyleWrapper = styled.div`
   }
   button {
     width: 100px;
+    border-radius: 8px;
   }
 `;
 

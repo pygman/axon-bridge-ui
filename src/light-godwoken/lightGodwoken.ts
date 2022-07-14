@@ -30,7 +30,7 @@ import {
   Token,
   DepositRequest,
   DepositEventEmitter,
-  PendingDepositTransaction,
+  PendingDepositTransaction, GetFeePayload, CrossToCkbPayload,
 } from "./lightGodwokenType";
 import { debug } from "./debug";
 import { GodwokenVersion, LightGodwokenConfig } from "./constants/configTypes";
@@ -50,6 +50,7 @@ import { CellDep, CellWithStatus, DepType, OutPoint, Output, TransactionWithStat
 import EventEmitter from "events";
 import { isSpecialWallet } from "./utils";
 import { getAdvancedSettings } from "./constants/configManager";
+import {ethers} from "ethers";
 
 export default abstract class DefaultLightGodwoken implements LightGodwokenBase {
   provider: LightGodwokenProvider;
@@ -64,6 +65,7 @@ export default abstract class DefaultLightGodwoken implements LightGodwokenBase 
   abstract getNativeAsset(): Token;
   abstract getChainId(): string | Promise<string>;
   abstract getL2CkbBalance(payload?: GetL2CkbBalancePayload | undefined): Promise<string>;
+  abstract getFee(payload?: GetFeePayload | undefined): Promise<string>;
   abstract getErc20Balances(payload: GetErc20Balances): Promise<GetErc20BalancesResult>;
   abstract getWithdrawal(txHash: Hash): Promise<unknown>;
   abstract getBuiltinErc20List(): ProxyERC20[];
@@ -425,6 +427,21 @@ export default abstract class DefaultLightGodwoken implements LightGodwokenBase 
       eventEmitter.emit("sent", txHash);
       this.waitForDepositToComplete(txHash, eventEmitter);
     }
+    return txHash;
+  }
+
+  async crossToCkb(payload: CrossToCkbPayload, eventEmitter?: EventEmitter): Promise<string> {
+    const gas = await this.provider.crossChainContract.estimateGas.crossTokenToCKB(payload?.address, payload?.token, payload?.amount);
+    const tc = await this.provider.web3Signer.getTransactionCount();
+    const tx = await this.provider.crossChainContract.crossTokenToCKB(payload?.address, payload?.token, payload?.amount);
+    const gasPrice = await this.provider.ethProvider.getGasPrice();
+    tx.to = this.provider.getConfig().layer2Config.CROSS_CHAIN_ADDRESS;
+    tx.from = this.provider.l2Address;
+    tx.nonce = tc + 1;
+    tx.gasLimit = gas;
+    tx.gasPrice = gasPrice;
+    const signedTx = await this.provider.web3Signer.signTransaction(tx)
+    const txHash = (await this.provider.ethProvider.sendTransaction(signedTx)).hash;
     return txHash;
   }
 

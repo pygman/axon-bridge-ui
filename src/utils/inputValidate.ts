@@ -41,6 +41,10 @@ type InputOptionType = {
   decimals?: number;
 };
 
+type AxonToCkbInputType = {
+  ckbAddress: string | undefined, bridgeAmount: number | undefined
+};
+
 /**
  * check if the input is valid,
  * if it is valid, return undefined
@@ -107,6 +111,18 @@ export const getDepositInputError = ({
     parseStringToBI(CKBInput, 8).lt(parseStringToBI(CKBBalance))
   ) {
     return "Must Left 0 Or 64 More CKB";
+  }
+  return undefined;
+};
+
+export const getAxonToCkbInputError = ({
+    ckbAddress, bridgeAmount
+}: AxonToCkbInputType): string | undefined => {
+  if (!ckbAddress) {
+    return "Enter CKB Address";
+  }
+  if (!bridgeAmount) {
+    return "Enter AT Amount";
   }
   return undefined;
 };

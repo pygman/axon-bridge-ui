@@ -13,11 +13,12 @@ import {
   GetL2CkbBalancePayload,
   Token,
   WithdrawResultV1,
-  WithdrawResultWithCell,
+  WithdrawResultWithCell, GetFeePayload,
 } from "./lightGodwokenType";
 import DefaultLightGodwoken from "./lightGodwoken";
 import { CKB_SUDT_ID, getTokenList } from "./constants/tokens";
 import ERC20 from "./constants/ERC20.json";
+import CrossChain from "./constants/CrossChain.json";
 import LightGodwokenProvider from "./lightGodwokenProvider";
 import { RawWithdrawalRequestV1, WithdrawalRequestExtraCodec } from "./schemas/codecV1";
 import { debug } from "./debug";
@@ -33,7 +34,7 @@ import {
 import { getAdvancedSettings } from "./constants/configManager";
 import { GodwokenVersion } from "./constants/configTypes";
 import { Contract as MulticallContract, Provider as MulticallProvider, setMulticallAddress } from "ethers-multicall";
-import { BigNumber, providers } from "ethers";
+import {BigNumber, ethers, providers} from "ethers";
 export default class DefaultLightGodwokenV1 extends DefaultLightGodwoken implements LightGodwokenV1 {
   listWithdraw(): Promise<WithdrawResultWithCell[]> {
     throw new Error("Method not implemented.");
@@ -97,6 +98,15 @@ export default class DefaultLightGodwokenV1 extends DefaultLightGodwoken impleme
     const balance = await this.provider.web3.eth.getBalance(payload?.l2Address || this.provider.l2Address);
     // const balance = await this.godwokenClient.getCkbBalance(payload?.l2Address || this.provider.l2Address);
     return "0x" + Number(balance).toString(16);
+  }
+
+  async getFee(payload?: GetFeePayload): Promise<HexNumber> {
+    const fee = (this.provider.crossChainContract.fee(payload?.l2Address, payload?.value)).toString();
+    try {
+      return BigNumber.from(fee).toHexString();
+    }catch (e) {
+      return "0x0";
+    }
   }
 
   getBuiltinSUDTMapByTypeHash(): Record<HexString, SUDT> {
